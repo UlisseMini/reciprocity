@@ -6,8 +6,8 @@ import path from 'path';
 import { loggerMiddleware } from './middleware/logger';
 import cookieParser from 'cookie-parser';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { users, guilds, userGuilds } from './db/schema';
-import { eq } from 'drizzle-orm';
+import { users, guilds, userGuilds, userRelations } from './db/schema';
+import { eq, and } from 'drizzle-orm';
 
 // Load environment variables
 dotenv.config();
@@ -290,6 +290,58 @@ app.get('/api/users', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
+// Zod schema for relation request
+const CreateRelationSchema = z.object({
+    targetUserId: z.string(),
+    would: z.string(),
+});
+
+// API endpoint to create a relation and check for mutual match
+app.post('/api/relations', express.json(), async (req: Request, res: Response) => {
+    if (!req.user) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        const body = CreateRelationSchema.parse(req.body);
+
+        // Create the new relation
+        await db.insert(userRelations).values({
+            sourceUserId: req.user.id,
+            targetUserId: body.targetUserId,
+            would: body.would,
+        }).onConflictDoUpdate({
+            target: [userRelations.sourceUserId, userRelations.targetUserId],
+            set: {
+                would: body.would,
+                updatedAt: new Date(),
+            },
+        });
+
+        // Check if there's a mutual relation
+        const mutualRelation = await db.select()
+            .from(userRelations)
+            .where(
+                and(
+                    eq(userRelations.sourceUserId, body.targetUserId),
+                    eq(userRelations.targetUserId, req.user.id),
+                    eq(userRelations.would, body.would)
+                )
+            )
+            .limit(1);
+
+        res.json({
+            success: true,
+            isMatched: mutualRelation.length > 0
+        });
+
+    } catch (error) {
+        console.error('Error creating relation:', error);
+        res.status(500).json({ error: 'Failed to create relation' });
     }
 });
 
