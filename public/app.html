@@ -5,78 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Discord App</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-        }
-
-        .logout-button {
-            background-color: #dc3545;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .logout-button:hover {
-            background-color: #c82333;
-        }
-
-        .users-list {
-            margin-top: 2rem;
-            border-top: 1px solid #eee;
-            padding-top: 2rem;
-        }
-
-        .user-card {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            border-bottom: 1px solid #eee;
-        }
-
-        .user-card img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-        }
-
-        .user-card .user-details {
-            flex-grow: 1;
-        }
-
-        .user-card .last-login {
-            color: #666;
-            font-size: 0.9rem;
-        }
-    </style>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 
 <body>
@@ -95,51 +24,7 @@
             <div id="users-container"></div>
         </div>
     </div>
-    <script>
-        async function loadUserInfo() {
-            const response = await fetch('/api/me');
-            const userData = await response.json();
-
-            document.getElementById('username').textContent = `${userData.username}`;
-            if (userData.avatar) {
-                document.getElementById('avatar').src =
-                    `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`;
-            }
-        }
-
-        async function loadAllUsers() {
-            try {
-                const response = await fetch('/api/users');
-                const users = await response.json();
-
-                const container = document.getElementById('users-container');
-                container.innerHTML = users
-                    .map(user => {
-                        const avatarUrl = user.avatar
-                            ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-                            : 'https://cdn.discordapp.com/embed/avatars/0.png';
-
-                        const lastLogin = new Date(user.lastLogin).toLocaleString();
-
-                        return `
-                            <div class="user-card">
-                                <img src="${avatarUrl}" alt="${user.username}'s avatar">
-                                <div class="user-details">
-                                    <div>${user.username}</div>
-                                    <div class="last-login">Last login: ${lastLogin}</div>
-                                </div>
-                            </div>
-                        `;
-                    })
-                    .join('');
-            } catch (error) {
-                console.error('Error loading users:', error);
-            }
-        }
-
-        loadUserInfo();
-        loadAllUsers();
-    </script>
+    <script src="/app.js"></script>
 </body>
 
 </html>
