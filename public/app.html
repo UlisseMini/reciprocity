@@ -47,6 +47,35 @@
         .logout-button:hover {
             background-color: #c82333;
         }
+
+        .users-list {
+            margin-top: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 2rem;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-card img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .user-card .user-details {
+            flex-grow: 1;
+        }
+
+        .user-card .last-login {
+            color: #666;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 
@@ -60,6 +89,11 @@
             </div>
         </div>
         <a href="/logout" class="logout-button">Logout</a>
+
+        <div class="users-list">
+            <h2>All Users</h2>
+            <div id="users-container"></div>
+        </div>
     </div>
     <script>
         async function loadUserInfo() {
@@ -72,7 +106,39 @@
                     `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`;
             }
         }
+
+        async function loadAllUsers() {
+            try {
+                const response = await fetch('/api/users');
+                const users = await response.json();
+
+                const container = document.getElementById('users-container');
+                container.innerHTML = users
+                    .map(user => {
+                        const avatarUrl = user.avatar
+                            ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                            : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+                        const lastLogin = new Date(user.lastLogin).toLocaleString();
+
+                        return `
+                            <div class="user-card">
+                                <img src="${avatarUrl}" alt="${user.username}'s avatar">
+                                <div class="user-details">
+                                    <div>${user.username}</div>
+                                    <div class="last-login">Last login: ${lastLogin}</div>
+                                </div>
+                            </div>
+                        `;
+                    })
+                    .join('');
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
         loadUserInfo();
+        loadAllUsers();
     </script>
 </body>
 

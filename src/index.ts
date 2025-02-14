@@ -5,6 +5,9 @@ import { z } from 'zod';
 import path from 'path';
 import { loggerMiddleware } from './middleware/logger';
 import cookieParser from 'cookie-parser';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { users } from './db/schema';
+import { eq } from 'drizzle-orm';
 
 // Load environment variables
 dotenv.config();
@@ -26,6 +29,9 @@ const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI!;
 // Discord API endpoints
 const DISCORD_API = 'https://discord.com/api';
 const OAUTH_SCOPE = 'identify guilds';
+
+// Connect to PostgreSQL
+const db = drizzle(process.env.DATABASE_URL!);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
@@ -173,12 +179,32 @@ app.get('/auth/discord/callback', async (req: Request, res: Response): Promise<v
         const tokenData = TokenResponseSchema.parse(await tokenResponse.json());
         const authHeader = `${tokenData.token_type} ${tokenData.access_token}`;
 
+        // Fetch user data
+        const userData = await fetchDiscordAPI('/users/@me', authHeader, UserResponseSchema);
+
+        // Store or update user in database
+        await db.insert(users).values({
+            id: userData.id,
+            username: userData.username,
+            discriminator: userData.discriminator,
+            avatar: userData.avatar,
+            lastLogin: new Date(), // Add lastLogin on insert
+        }).onConflictDoUpdate({
+            target: users.id,
+            set: {
+                username: userData.username,
+                discriminator: userData.discriminator,
+                avatar: userData.avatar,
+                lastLogin: new Date(),
+            },
+        });
+
         // Set auth cookie and redirect
         res.cookie('auth_token', authHeader, {
-            httpOnly: true, // Prevents JavaScript access
-            secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+            maxAge: 24 * 60 * 60 * 1000
         });
 
         res.redirect('/');
@@ -202,6 +228,22 @@ app.get('/api/me', async (req: Request, res: Response) => {
     }
 
     res.json(req.user);
+});
+
+// Add new endpoint to fetch all users
+app.get('/api/users', async (req: Request, res: Response) => {
+    if (!req.user) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        const allUsers = await db.select().from(users).orderBy(users.lastLogin);
+        res.json(allUsers);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
 });
 
 app.listen(PORT, () => {
