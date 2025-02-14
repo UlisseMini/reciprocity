@@ -1,8 +1,13 @@
-let mutualMatches = [];
+async function jsonFetch(url, ...args) {
+    const response = await fetch(url, ...args);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+}
 
-async function loadUserInfo() {
-    const response = await fetch('/api/me');
-    const userData = await response.json();
+async function loadUserInfoHeader() {
+    const userData = await jsonFetch('/api/me');
 
     document.getElementById('username').textContent = `${userData.username}`;
     if (userData.avatar) {
@@ -23,7 +28,7 @@ async function modifyRelation(targetUserId, would, shouldDelete) {
     }
 
     try {
-        const response = await fetch('/api/relations', {
+        const result = await jsonFetch('/api/relations', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -33,16 +38,14 @@ async function modifyRelation(targetUserId, would, shouldDelete) {
             })
         });
 
-        const result = await response.json();
+        // Refresh the users table
+        await loadUsersTable();
 
         if (!shouldDelete && result.isMatched) {
+            // wait for ui refresh before showing alert
+            await new Promise(r => setTimeout(r, 100));
             alert('YOU MATCHED!!!!');
         }
-
-        // Refresh both relations and matches
-        await Promise.all([loadRelations(), loadMatches()]);
-        // Reload the users to update the match indicators
-        await loadAllUsers();
     } catch (error) {
         console.error('Error modifying relation:', error);
         alert('Something went wrong!');
@@ -75,19 +78,12 @@ async function loadRelations() {
     }
 }
 
-async function loadMatches() {
+async function loadUsersTable() {
     try {
-        const response = await fetch('/api/matches');
-        mutualMatches = await response.json();
-    } catch (error) {
-        console.error('Error loading matches:', error);
-    }
-}
-
-async function loadAllUsers() {
-    try {
-        const response = await fetch('/api/users');
-        const users = await response.json();
+        const [users, mutualMatches] = await Promise.all([
+            jsonFetch('/api/users'),
+            jsonFetch('/api/matches')
+        ]);
 
         const container = document.getElementById('users-container');
         container.innerHTML = users
@@ -142,14 +138,6 @@ async function loadAllUsers() {
     }
 }
 
-// Initialize everything
-async function initialize() {
-    await Promise.all([
-        loadUserInfo(),
-        loadMatches()  // Load matches immediately on page load
-    ]);
-    await loadAllUsers();
-}
-
-// Replace the direct function calls at the bottom with initialize()
-initialize(); 
+// async and can happen at the same time
+loadUserInfoHeader()
+loadUsersTable()
