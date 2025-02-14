@@ -419,6 +419,7 @@ const OptOutSchema = z.object({
     delete: z.boolean().optional(),
 });
 
+// Set our opt out settings
 app.post("/api/opt-out", express.json(), async (req: Request, res: Response) => {
     if (!req.user) {
         res.status(401).json({ error: 'Unauthorized' });
@@ -448,13 +449,12 @@ app.post("/api/opt-out", express.json(), async (req: Request, res: Response) => 
     res.json({ success: true });
 });
 
-// Add this schema near the other schemas
 const OptOutResponseSchema = z.object({
     userId: z.string(),
-    would: z.string().transform(s => s), // ensure string type
+    would: z.string(),
 });
 
-// Add this new endpoint after the POST /api/opt-out endpoint
+// Get our opt out settings
 app.get("/api/opt-outs", async (req: Request, res: Response) => {
     if (!req.user) {
         res.status(401).json({ error: 'Unauthorized' });

@@ -138,6 +138,49 @@ async function loadUsersTable() {
     }
 }
 
+async function toggleOptOut(would) {
+    try {
+        const button = document.getElementById(`opt-out-${would.replace(' ', '-')}`);
+        const currentState = button.classList.contains('opted-out');
+
+        await jsonFetch('/api/opt-out', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                would: would,
+                delete: currentState
+            })
+        });
+
+        // Update button state
+        button.classList.toggle('opted-out');
+        button.textContent = currentState ? 'Opt Out' : 'Opted Out';
+
+        // Refresh the users table to show updated state
+        await loadUsersTable();
+    } catch (error) {
+        console.error('Error toggling opt-out:', error);
+        alert('Something went wrong!');
+    }
+}
+
+async function loadOptOutStates() {
+    try {
+        const optOuts = await jsonFetch('/api/opt-outs');
+
+        // Update all opt-out buttons
+        WOULD_OPTIONS.forEach(would => {
+            const button = document.getElementById(`opt-out-${would.replace(' ', '-')}`);
+            const isOptedOut = optOuts.some(opt => opt.would === would);
+            button.textContent = isOptedOut ? 'Opted Out' : 'Opt Out';
+            button.classList.toggle('opted-out', isOptedOut);
+        });
+    } catch (error) {
+        console.error('Error loading opt-out states:', error);
+    }
+}
+
 // async and can happen at the same time
 loadUserInfoHeader()
 loadUsersTable()
+loadOptOutStates()
