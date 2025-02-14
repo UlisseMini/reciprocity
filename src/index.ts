@@ -1,9 +1,8 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { URLSearchParams } from 'url';
 import fetch from 'node-fetch';
 import { z } from 'zod';
-import { Request, Response } from 'express';
 
 // Load environment variables
 dotenv.config();
@@ -18,7 +17,7 @@ const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI!;
 
 // Discord API endpoints
 const DISCORD_API = 'https://discord.com/api/v10';
-const OAUTH_SCOPE = 'identify email';
+const OAUTH_SCOPE = 'identify guilds';
 
 // Zod schemas for Discord API responses
 const TokenResponseSchema = z.object({
@@ -40,11 +39,12 @@ const UserResponseSchema = z.object({
 type TokenResponse = z.infer<typeof TokenResponseSchema>;
 type UserResponse = z.infer<typeof UserResponseSchema>;
 
-app.get('/auth/discord/callback', async (req: Request, res: Response) => {
+app.get('/auth/discord/callback', async (req: Request, res: Response): Promise<void> => {
     const { code } = req.query;
 
     if (!code || typeof code !== 'string') {
-        return res.status(400).send('No code provided');
+        res.status(400).send('No code provided');
+        return;
     }
 
     try {
@@ -92,4 +92,8 @@ app.get('/auth/discord/callback', async (req: Request, res: Response) => {
         console.error('Error during authentication:', error);
         res.status(500).send('Authentication failed');
     }
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 }); 
