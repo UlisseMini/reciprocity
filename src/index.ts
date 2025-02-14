@@ -7,7 +7,7 @@ import { loggerMiddleware } from './middleware/logger';
 import cookieParser from 'cookie-parser';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { users, guilds, userGuilds, userRelations } from './db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, exists } from 'drizzle-orm';
 
 // Load environment variables
 dotenv.config();
@@ -293,13 +293,14 @@ app.get('/api/users', async (req: Request, res: Response) => {
     }
 });
 
-// Zod schema for relation request
-const CreateRelationSchema = z.object({
+// Update the schema to handle both create and delete operations
+const ModifyRelationSchema = z.object({
     targetUserId: z.string(),
     would: z.string(),
+    delete: z.boolean().optional(),
 });
 
-// API endpoint to create a relation and check for mutual match
+// Replace the existing /api/relations POST endpoint with this updated version
 app.post('/api/relations', express.json(), async (req: Request, res: Response) => {
     if (!req.user) {
         res.status(401).json({ error: 'Unauthorized' });
@@ -307,19 +308,28 @@ app.post('/api/relations', express.json(), async (req: Request, res: Response) =
     }
 
     try {
-        const body = CreateRelationSchema.parse(req.body);
+        const body = ModifyRelationSchema.parse(req.body);
+
+        if (body.delete) {
+            // Delete the relation
+            await db.delete(userRelations)
+                .where(
+                    and(
+                        eq(userRelations.sourceUserId, req.user.id),
+                        eq(userRelations.targetUserId, body.targetUserId),
+                        eq(userRelations.would, body.would)
+                    )
+                );
+
+            res.json({ success: true, deleted: true });
+            return;
+        }
 
         // Create the new relation
         await db.insert(userRelations).values({
             sourceUserId: req.user.id,
             targetUserId: body.targetUserId,
             would: body.would,
-        }).onConflictDoUpdate({
-            target: [userRelations.sourceUserId, userRelations.targetUserId],
-            set: {
-                would: body.would,
-                updatedAt: new Date(),
-            },
         });
 
         // Check if there's a mutual relation
@@ -340,9 +350,60 @@ app.post('/api/relations', express.json(), async (req: Request, res: Response) =
         });
 
     } catch (error) {
-        console.error('Error creating relation:', error);
-        res.status(500).json({ error: 'Failed to create relation' });
+        console.error('Error modifying relation:', error);
+        res.status(500).json({ error: 'Failed to modify relation' });
     }
+});
+
+const RelationResponseSchema = z.object({
+    sourceUserId: z.string(),
+    targetUserId: z.string(),
+    would: z.string(),
+});
+
+app.get("/api/relations", async (req: Request, res: Response) => {
+    if (!req.user) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    const relations = await db.select().from(userRelations).where(eq(userRelations.sourceUserId, req.user.id));
+    res.json(relations.map(relation => RelationResponseSchema.parse(relation)));
+});
+
+app.get("/api/matches", async (req: Request, res: Response) => {
+    if (!req.user) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    // Find all mutual relations where both users have the same "would" value
+    const mutualRelations = await db
+        .select({
+            otherUserId: userRelations.sourceUserId,
+            would: userRelations.would
+        })
+        .from(userRelations)
+        .where(
+            and(
+                eq(userRelations.targetUserId, req.user.id),
+                // Exists subquery to check for matching relation in opposite direction
+                exists(
+                    db.select()
+                        .from(userRelations as typeof userRelations)
+                        .where(
+                            and(
+                                eq(userRelations.sourceUserId, req.user.id),
+                                eq(userRelations.targetUserId, userRelations.sourceUserId),
+                                eq(userRelations.would, userRelations.would)
+                            )
+                        )
+                )
+            )
+        );
+
+    console.log(mutualRelations);
+    res.json(mutualRelations);
 });
 
 app.listen(PORT, () => {

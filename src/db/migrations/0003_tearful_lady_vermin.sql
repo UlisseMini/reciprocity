@@ -1,0 +1,1 @@
+ALTER TABLE "user_relations" ADD CONSTRAINT "user_relations_source_user_id_target_user_id_pk" PRIMARY KEY("source_user_id","target_user_id");
