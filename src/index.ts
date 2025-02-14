@@ -6,7 +6,7 @@ import path from 'path';
 import { loggerMiddleware } from './middleware/logger';
 import cookieParser from 'cookie-parser';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { users } from './db/schema';
+import { users, guilds, userGuilds } from './db/schema';
 import { eq } from 'drizzle-orm';
 
 // Load environment variables
@@ -146,8 +146,69 @@ const UserResponseSchema = z.object({
     avatar: z.string().nullable(),
 });
 
+const GuildResponseSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    icon: z.string().nullable(),
+});
+
 type TokenResponse = z.infer<typeof TokenResponseSchema>;
 export type UserResponse = z.infer<typeof UserResponseSchema>;
+type GuildResponse = z.infer<typeof GuildResponseSchema>;
+
+async function syncUserData(authHeader: string, userData: UserResponse) {
+    try {
+        // 1. Update or insert user
+        await db.insert(users).values({
+            id: userData.id,
+            username: userData.username,
+            discriminator: userData.discriminator,
+            avatar: userData.avatar,
+            lastLogin: new Date(),
+        }).onConflictDoUpdate({
+            target: users.id,
+            set: {
+                username: userData.username,
+                discriminator: userData.discriminator,
+                avatar: userData.avatar,
+                lastLogin: new Date(),
+            },
+        });
+
+        // 2. Fetch user's guilds from Discord
+        const discordGuilds = await fetchDiscordAPI<GuildResponse[]>(
+            '/users/@me/guilds',
+            authHeader,
+            z.array(GuildResponseSchema)
+        );
+
+        // 3. Update or insert guilds
+        for (const guild of discordGuilds) {
+            await db.insert(guilds).values({
+                id: guild.id,
+                name: guild.name,
+                icon: guild.icon,
+                updatedAt: new Date(),
+            }).onConflictDoUpdate({
+                target: guilds.id,
+                set: {
+                    name: guild.name,
+                    icon: guild.icon,
+                    updatedAt: new Date(),
+                },
+            });
+
+            // 4. Update or insert user guild relationships
+            await db.insert(userGuilds).values({
+                userId: userData.id,
+                guildId: guild.id,
+            }).onConflictDoNothing();
+        }
+    } catch (error) {
+        console.error('Error syncing user data:', error);
+        throw error;
+    }
+}
 
 app.get('/auth/discord/callback', async (req: Request, res: Response): Promise<void> => {
     const { code } = req.query;
@@ -182,22 +243,8 @@ app.get('/auth/discord/callback', async (req: Request, res: Response): Promise<v
         // Fetch user data
         const userData = await fetchDiscordAPI('/users/@me', authHeader, UserResponseSchema);
 
-        // Store or update user in database
-        await db.insert(users).values({
-            id: userData.id,
-            username: userData.username,
-            discriminator: userData.discriminator,
-            avatar: userData.avatar,
-            lastLogin: new Date(), // Add lastLogin on insert
-        }).onConflictDoUpdate({
-            target: users.id,
-            set: {
-                username: userData.username,
-                discriminator: userData.discriminator,
-                avatar: userData.avatar,
-                lastLogin: new Date(),
-            },
-        });
+        // Replace the existing db.insert with this:
+        await syncUserData(authHeader, userData);
 
         // Set auth cookie and redirect
         res.cookie('auth_token', authHeader, {
