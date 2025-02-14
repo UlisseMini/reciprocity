@@ -6,8 +6,8 @@ import path from 'path';
 import { loggerMiddleware } from './middleware/logger';
 import cookieParser from 'cookie-parser';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { users, guilds, userGuilds, userRelations } from './db/schema';
-import { eq, and, exists } from 'drizzle-orm';
+import { users, guilds, userGuilds, userRelations, userOptOuts } from './db/schema';
+import { eq, and, exists, sql } from 'drizzle-orm';
 
 // Load environment variables
 dotenv.config();
@@ -381,9 +381,17 @@ app.get("/api/matches", async (req: Request, res: Response) => {
     const mutualRelations = await db
         .select({
             otherUserId: userRelations.sourceUserId,
-            would: userRelations.would
+            would: userRelations.would,
+            optOut: sql`${userOptOuts.id} IS NOT NULL`
         })
         .from(userRelations)
+        .leftJoin(
+            userOptOuts,
+            and(
+                eq(userOptOuts.userId, userRelations.sourceUserId),
+                eq(userOptOuts.wouldCategory, userRelations.would)
+            )
+        )
         .where(
             and(
                 eq(userRelations.targetUserId, req.user.id),
@@ -402,7 +410,72 @@ app.get("/api/matches", async (req: Request, res: Response) => {
             )
         );
 
+    console.log(mutualRelations);
     res.json(mutualRelations);
+});
+
+const OptOutSchema = z.object({
+    would: z.string(),
+    delete: z.boolean().optional(),
+});
+
+app.post("/api/opt-out", express.json(), async (req: Request, res: Response) => {
+    if (!req.user) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    const body = OptOutSchema.parse(req.body);
+
+    if (body.delete) {
+        // Delete the opt-out record
+        await db
+            .delete(userOptOuts)
+            .where(
+                and(
+                    eq(userOptOuts.userId, req.user.id),
+                    eq(userOptOuts.wouldCategory, body.would)
+                )
+            );
+    } else {
+        // Insert new opt-out record
+        await db.insert(userOptOuts).values({
+            userId: req.user.id,
+            wouldCategory: body.would,
+        });
+    }
+
+    res.json({ success: true });
+});
+
+// Add this schema near the other schemas
+const OptOutResponseSchema = z.object({
+    userId: z.string(),
+    would: z.string().transform(s => s), // ensure string type
+});
+
+// Add this new endpoint after the POST /api/opt-out endpoint
+app.get("/api/opt-outs", async (req: Request, res: Response) => {
+    if (!req.user) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        const optOuts = await db
+            .select({
+                userId: userOptOuts.userId,
+                would: userOptOuts.wouldCategory,
+            })
+            .from(userOptOuts)
+            .where(eq(userOptOuts.userId, req.user.id));
+
+        const validatedOptOuts = z.array(OptOutResponseSchema).parse(optOuts);
+        res.json(validatedOptOuts);
+    } catch (error) {
+        console.error('Error fetching opt-outs:', error);
+        res.status(500).json({ error: 'Failed to fetch opt-outs' });
+    }
 });
 
 app.listen(PORT, () => {
