@@ -402,7 +402,6 @@ app.get("/api/matches", async (req: Request, res: Response) => {
             )
         );
 
-    console.log(mutualRelations);
     res.json(mutualRelations);
 });
 
