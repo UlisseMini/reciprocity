@@ -1,7 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import { URLSearchParams } from 'url';
-import fetch from 'node-fetch';
 import { z } from 'zod';
 import path from 'path';
 import { loggerMiddleware } from './middleware/logger';
