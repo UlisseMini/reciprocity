@@ -40,12 +40,6 @@ async function modifyRelation(targetUserId, would, shouldDelete) {
 
         // Refresh the users table
         await loadUsersTable();
-
-        if (!shouldDelete && result.isMatched) {
-            // wait for ui refresh before showing alert
-            await new Promise(r => setTimeout(r, 100));
-            alert('YOU MATCHED!!!!');
-        }
     } catch (error) {
         console.error('Error modifying relation:', error);
         alert('Something went wrong!');
@@ -96,19 +90,21 @@ async function loadUsersTable() {
 
                 const wouldCheckboxes = WOULD_OPTIONS
                     .map(would => {
-                        // Check if this is a mutual match
-                        const isMatch = mutualMatches.some(match =>
+                        // Check if this is a mutual match and if it's opted out
+                        const match = mutualMatches.find(match =>
                             match.otherUserId === user.id && match.would === would
                         );
+                        const isMatch = !!match;
+                        const isOptedOut = isMatch && match.optOut;
 
                         return `
-                            <div class="would-checkbox ${isMatch ? 'matched' : ''}">
+                            <div class="would-checkbox ${isMatch ? 'matched' : ''} ${isOptedOut ? 'opted-out' : ''}">
                                 <input 
                                     type="checkbox" 
                                     id="${user.id}-${would}"
                                     onchange="modifyRelation('${user.id}', '${would}', !this.checked)"
                                 >
-                                ${isMatch ? '<span class="match-indicator">✓</span>' : ''}
+                                ${isMatch && !isOptedOut ? '<span class="match-indicator">✓</span>' : ''}
                             </div>
                         `;
                     })

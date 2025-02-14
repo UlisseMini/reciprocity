@@ -332,23 +332,7 @@ app.post('/api/relations', express.json(), async (req: Request, res: Response) =
             would: body.would,
         });
 
-        // Check if there's a mutual relation
-        const mutualRelation = await db.select()
-            .from(userRelations)
-            .where(
-                and(
-                    eq(userRelations.sourceUserId, body.targetUserId),
-                    eq(userRelations.targetUserId, req.user.id),
-                    eq(userRelations.would, body.would)
-                )
-            )
-            .limit(1);
-
-        res.json({
-            success: true,
-            isMatched: mutualRelation.length > 0
-        });
-
+        res.json({ success: true });
     } catch (error) {
         console.error('Error modifying relation:', error);
         res.status(500).json({ error: 'Failed to modify relation' });

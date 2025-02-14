@@ -160,6 +160,15 @@ body {
     transition: all 0.2s ease;
 }
 
+.would-checkbox.matched.opted-out {
+    background-color: rgba(128, 128, 128, 0.4);
+    box-shadow: 0 0 8px rgba(128, 128, 128, 0.6);
+}
+
+.would-checkbox.matched.opted-out .match-indicator {
+    color: #808080;
+}
+
 .match-indicator {
     position: absolute;
     top: -10px;
