@@ -28,7 +28,7 @@ const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI!;
 
 // Discord API endpoints
 const DISCORD_API = 'https://discord.com/api';
-const OAUTH_SCOPE = 'identify guilds';
+const OAUTH_SCOPE = 'identify';
 
 // Connect to PostgreSQL
 const db = drizzle(process.env.DATABASE_URL!);
@@ -176,34 +176,35 @@ async function syncUserData(authHeader: string, userData: UserResponse) {
         });
 
         // 2. Fetch user's guilds from Discord
-        const discordGuilds = await fetchDiscordAPI<GuildResponse[]>(
-            '/users/@me/guilds',
-            authHeader,
-            z.array(GuildResponseSchema)
-        );
+        // TODO: Do this and us it to make our app work for arbitrary servers or smthn.
+        // const discordGuilds = await fetchDiscordAPI<GuildResponse[]>(
+        //     '/users/@me/guilds',
+        //     authHeader,
+        //     z.array(GuildResponseSchema)
+        // );
 
-        // 3. Update or insert guilds
-        for (const guild of discordGuilds) {
-            await db.insert(guilds).values({
-                id: guild.id,
-                name: guild.name,
-                icon: guild.icon,
-                updatedAt: new Date(),
-            }).onConflictDoUpdate({
-                target: guilds.id,
-                set: {
-                    name: guild.name,
-                    icon: guild.icon,
-                    updatedAt: new Date(),
-                },
-            });
+        // // 3. Update or insert guilds
+        // for (const guild of discordGuilds) {
+        //     await db.insert(guilds).values({
+        //         id: guild.id,
+        //         name: guild.name,
+        //         icon: guild.icon,
+        //         updatedAt: new Date(),
+        //     }).onConflictDoUpdate({
+        //         target: guilds.id,
+        //         set: {
+        //             name: guild.name,
+        //             icon: guild.icon,
+        //             updatedAt: new Date(),
+        //         },
+        //     });
 
-            // 4. Update or insert user guild relationships
-            await db.insert(userGuilds).values({
-                userId: userData.id,
-                guildId: guild.id,
-            }).onConflictDoNothing();
-        }
+        //     // 4. Update or insert user guild relationships
+        //     await db.insert(userGuilds).values({
+        //         userId: userData.id,
+        //         guildId: guild.id,
+        //     }).onConflictDoNothing();
+        // }
     } catch (error) {
         console.error('Error syncing user data:', error);
         throw error;
