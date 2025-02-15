@@ -20,7 +20,7 @@ const WOULD_OPTIONS = [
     {
         id: 'date',
         label: 'Go On Date',
-        description: 'Would go on a date with 🥺'
+        description: 'Would go on a date if they wanted to 🥺'
     },
     {
         id: 'hookup',
