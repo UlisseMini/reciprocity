@@ -74,10 +74,13 @@ async function loadRelations() {
 
 async function loadUsersTable() {
     try {
-        const [users, mutualMatches] = await Promise.all([
+        const [users, mutualMatches, optOuts] = await Promise.all([
             jsonFetch('/api/users'),
-            jsonFetch('/api/matches')
+            jsonFetch('/api/matches'),
+            jsonFetch('/api/opt-outs')
         ]);
+
+        const optedOutCategories = new Set(optOuts.map(opt => opt.would));
 
         const container = document.getElementById('users-container');
         container.innerHTML = users
@@ -90,12 +93,12 @@ async function loadUsersTable() {
 
                 const wouldCheckboxes = WOULD_OPTIONS
                     .map(would => {
-                        // Check if this is a mutual match and if it's opted out
                         const match = mutualMatches.find(match =>
                             match.otherUserId === user.id && match.would === would
                         );
                         const isMatch = !!match;
                         const isOptedOut = isMatch && match.optOut;
+                        const isCategoryOptedOut = optedOutCategories.has(would);
 
                         return `
                             <div class="would-checkbox ${isMatch ? 'matched' : ''} ${isOptedOut ? 'opted-out' : ''}">
@@ -103,6 +106,7 @@ async function loadUsersTable() {
                                     type="checkbox" 
                                     id="${user.id}-${would}"
                                     onchange="modifyRelation('${user.id}', '${would}', !this.checked)"
+                                    ${isCategoryOptedOut ? 'disabled' : ''}
                                 >
                                 ${isMatch && !isOptedOut ? '<span class="match-indicator">✓</span>' : ''}
                             </div>
