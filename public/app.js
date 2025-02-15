@@ -16,10 +16,10 @@ async function loadUserInfoHeader() {
     }
 }
 
-const WOULD_OPTIONS = ['date', 'cuddle', '1-1', 'host', 'dinner'];
+const WOULD_OPTIONS = ['date', 'hook up', '1-1', 'host', 'dinner'];
 
 async function modifyRelation(targetUserId, would, shouldDelete) {
-    const confirmed = shouldDelete ? true : confirm('ARE YOU ABSOLUTELY CERTAIN??');
+    const confirmed = shouldDelete ? true : confirm('ARE YOU ABSOLUTELY CERTAIN YOU WANT THIS?');
     if (!confirmed) {
         // If not confirmed, reset the checkbox to its previous state
         const checkbox = document.getElementById(`${targetUserId}-${would}`);
