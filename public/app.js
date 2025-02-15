@@ -19,7 +19,7 @@ async function loadUserInfoHeader() {
 const WOULD_OPTIONS = [
     {
         id: 'date',
-        label: 'Would Date',
+        label: 'Go On Date',
         description: 'Would go on a date with 🥺'
     },
     {
