@@ -35,7 +35,7 @@ const WOULD_OPTIONS = [
     {
         id: 'intimate_talk',
         label: 'Would Have Deep 1-1',
-        description: '1-1 with total openness and vulnerability'
+        description: '1-1 with high openness and vulnerability'
     },
     {
         id: 'host',
