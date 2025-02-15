@@ -46,6 +46,11 @@ const WOULD_OPTIONS = [
         id: 'makeout',
         label: 'Would Make Out',
         description: 'Without further expectations️ :)'
+    },
+    {
+        id: 'impostor',
+        label: 'Impostor 😥',
+        description: 'Feel like an impostor compared to them'
     }
 ]
 
