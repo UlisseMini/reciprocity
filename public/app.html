@@ -19,63 +19,15 @@
         </div>
         <a href="/logout" class="logout-button">Logout</a>
 
-        <div class="settings">
-            <h2>Settings</h2>
-            <p>Opt out of matches for specific categories. If someone clicks you for that category they will be shown a
-                grayed out match indicating you've opted out of that category.</p>
-
-            <p>What the categories mean:</p>
-            <div class="footnotes">
-                <p><strong>Date:</strong> Would go on a date with them</p>
-                <p><strong>Hook up:</strong> Would hook up with them</p>
-                <p><strong>Intimate 1-1:</strong> Have a radically open/honest/vulnerable 1-1 to get to know each other
-                    better
-                </p>
-                <p><strong>Host:</strong> Would love to host them at your place when they're traveling or crash at their
-                    place if you are (non romantic)</p>
-                <p><strong>Dinner:</strong> Get dinner together (as friends, pick date for romantic)</p>
-            </div>
-
-            <div class="opt-out-settings">
-                <div class="opt-out-row">
-                    <div>Date</div>
-                    <button class="opt-out-button" onclick="toggleOptOut('date')" id="opt-out-date">Loading...</button>
-                </div>
-                <div class="opt-out-row">
-                    <div>Hook up</div>
-                    <button class="opt-out-button" onclick="toggleOptOut('hook up')"
-                        id="opt-out-hook-up">Loading...</button>
-                </div>
-                <div class="opt-out-row">
-                    <div>Vulnerable 1-1</div>
-                    <button class="opt-out-button" onclick="toggleOptOut('1-1')" id="opt-out-1-1">Loading...</button>
-                </div>
-                <div class="opt-out-row">
-                    <div>Host</div>
-                    <button class="opt-out-button" onclick="toggleOptOut('host')" id="opt-out-host">Loading...</button>
-                </div>
-                <div class="opt-out-row">
-                    <div>Get Dinner</div>
-                    <button class="opt-out-button" onclick="toggleOptOut('dinner')"
-                        id="opt-out-dinner">Loading...</button>
-                </div>
-            </div>
-        </div>
-
         <div class="users-list">
             <h2>All Users</h2>
-            <p>Green checkmark = mutual match! Grayed out = opted out (neither confirm nor deny), No effect
-                = No match
-            </p>
             <div class="users-table">
                 <div class="table-header">
                     <div class="user-col">User</div>
                     <div class="would-cols">
-                        <div>Date</div>
-                        <div>Hook up</div>
-                        <div>Intimate 1-1</div>
-                        <div>Host</div>
-                        <div>Get Dinner</div>
+                        <div>Would Date</div>
+                        <div>Would Cuddle</div>
+                        <div>Would Suck Toes</div>
                     </div>
                 </div>
                 <div id="users-container"></div>

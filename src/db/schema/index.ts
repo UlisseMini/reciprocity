@@ -42,18 +42,9 @@ export const userRelations = pgTable('user_relations', {
     targetUserId: text('target_user_id')
         .notNull()
         .references(() => users.id, { onDelete: 'cascade' }),
-    would: text('would').notNull(), // "would date", "would hook up with "
+    would: text('would').notNull(), // "would date", "would be friends with"
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const userOptOuts = pgTable('user_opt_outs', {
-    id: serial('id').primaryKey(),
-    userId: text('user_id')
-        .notNull()
-        .references(() => users.id, { onDelete: 'cascade' }),
-    wouldCategory: text('would').notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 // Export the type that represents a user row
@@ -71,8 +62,4 @@ export type NewUserGuild = typeof userGuilds.$inferInsert;
 
 // Export user relation types
 export type UserRelation = typeof userRelations.$inferSelect;
-export type NewUserRelation = typeof userRelations.$inferInsert;
-
-// Export opt-out types
-export type UserOptOut = typeof userOptOuts.$inferSelect;
-export type NewUserOptOut = typeof userOptOuts.$inferInsert; 
+export type NewUserRelation = typeof userRelations.$inferInsert; 

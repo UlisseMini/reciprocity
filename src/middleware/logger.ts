@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 
 // Enable/disable logging with this flag
-export const ENABLE_LOGGING = true;
+export const ENABLE_LOGGING = false;
 
 export function loggerMiddleware(req: Request, res: Response, next: NextFunction) {
     const startTime = Date.now();

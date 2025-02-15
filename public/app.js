@@ -16,10 +16,10 @@ async function loadUserInfoHeader() {
     }
 }
 
-const WOULD_OPTIONS = ['date', 'hook up', '1-1', 'host', 'dinner'];
+const WOULD_OPTIONS = ['date', 'cuddle', 'suck toes'];
 
 async function modifyRelation(targetUserId, would, shouldDelete) {
-    const confirmed = shouldDelete ? true : confirm('ARE YOU ABSOLUTELY CERTAIN YOU WANT THIS?');
+    const confirmed = shouldDelete ? true : confirm('ARE YOU ABSOLUTELY CERTAIN??');
     if (!confirmed) {
         // If not confirmed, reset the checkbox to its previous state
         const checkbox = document.getElementById(`${targetUserId}-${would}`);
@@ -40,6 +40,12 @@ async function modifyRelation(targetUserId, would, shouldDelete) {
 
         // Refresh the users table
         await loadUsersTable();
+
+        if (!shouldDelete && result.isMatched) {
+            // wait for ui refresh before showing alert
+            await new Promise(r => setTimeout(r, 100));
+            alert('YOU MATCHED!!!!');
+        }
     } catch (error) {
         console.error('Error modifying relation:', error);
         alert('Something went wrong!');
@@ -74,13 +80,10 @@ async function loadRelations() {
 
 async function loadUsersTable() {
     try {
-        const [users, mutualMatches, optOuts] = await Promise.all([
+        const [users, mutualMatches] = await Promise.all([
             jsonFetch('/api/users'),
-            jsonFetch('/api/matches'),
-            jsonFetch('/api/opt-outs')
+            jsonFetch('/api/matches')
         ]);
-
-        const optedOutCategories = new Set(optOuts.map(opt => opt.would));
 
         const container = document.getElementById('users-container');
         container.innerHTML = users
@@ -93,22 +96,19 @@ async function loadUsersTable() {
 
                 const wouldCheckboxes = WOULD_OPTIONS
                     .map(would => {
-                        const match = mutualMatches.find(match =>
+                        // Check if this is a mutual match
+                        const isMatch = mutualMatches.some(match =>
                             match.otherUserId === user.id && match.would === would
                         );
-                        const isMatch = !!match;
-                        const isOptedOut = isMatch && match.optOut;
-                        const isCategoryOptedOut = optedOutCategories.has(would);
 
                         return `
-                            <div class="would-checkbox ${isMatch ? 'matched' : ''} ${isOptedOut ? 'opted-out' : ''}">
+                            <div class="would-checkbox ${isMatch ? 'matched' : ''}">
                                 <input 
                                     type="checkbox" 
                                     id="${user.id}-${would}"
                                     onchange="modifyRelation('${user.id}', '${would}', !this.checked)"
-                                    ${isCategoryOptedOut ? 'disabled' : ''}
                                 >
-                                ${isMatch && !isOptedOut ? '<span class="match-indicator">✓</span>' : ''}
+                                ${isMatch ? '<span class="match-indicator">✓</span>' : ''}
                             </div>
                         `;
                     })
@@ -138,49 +138,6 @@ async function loadUsersTable() {
     }
 }
 
-async function toggleOptOut(would) {
-    try {
-        const button = document.getElementById(`opt-out-${would.replace(' ', '-')}`);
-        const currentState = button.classList.contains('opted-out');
-
-        await jsonFetch('/api/opt-out', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                would: would,
-                delete: currentState
-            })
-        });
-
-        // Update button state
-        button.classList.toggle('opted-out');
-        button.textContent = currentState ? 'Opt Out' : 'Opted Out';
-
-        // Refresh the users table to show updated state
-        await loadUsersTable();
-    } catch (error) {
-        console.error('Error toggling opt-out:', error);
-        alert('Something went wrong!');
-    }
-}
-
-async function loadOptOutStates() {
-    try {
-        const optOuts = await jsonFetch('/api/opt-outs');
-
-        // Update all opt-out buttons
-        WOULD_OPTIONS.forEach(would => {
-            const button = document.getElementById(`opt-out-${would.replace(' ', '-')}`);
-            const isOptedOut = optOuts.some(opt => opt.would === would);
-            button.textContent = isOptedOut ? 'Opted Out' : 'Opt Out';
-            button.classList.toggle('opted-out', isOptedOut);
-        });
-    } catch (error) {
-        console.error('Error loading opt-out states:', error);
-    }
-}
-
 // async and can happen at the same time
 loadUserInfoHeader()
 loadUsersTable()
-loadOptOutStates()
