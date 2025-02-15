@@ -377,30 +377,37 @@ app.get("/api/matches", async (req: Request, res: Response) => {
         return;
     }
 
-    // Find all mutual relations where both users have the same "would" value
-    const mutualRelations = await db
+    // First find all relations where the current user has indicated interest in others
+    const myRelations = await db
         .select({
-            otherUserId: userRelations.sourceUserId,
+            targetUserId: userRelations.targetUserId,
             would: userRelations.would
         })
         .from(userRelations)
-        .where(
-            and(
-                eq(userRelations.targetUserId, req.user.id),
-                // Exists subquery to check for matching relation in opposite direction
-                exists(
-                    db.select()
-                        .from(userRelations as typeof userRelations)
-                        .where(
-                            and(
-                                eq(userRelations.sourceUserId, req.user.id),
-                                eq(userRelations.targetUserId, userRelations.sourceUserId),
-                                eq(userRelations.would, userRelations.would)
-                            )
-                        )
-                )
-            )
-        );
+        .where(eq(userRelations.sourceUserId, req.user.id));
+
+    // Then find all relations where others have indicated interest in the current user
+    const othersRelations = await db
+        .select({
+            sourceUserId: userRelations.sourceUserId,
+            would: userRelations.would
+        })
+        .from(userRelations)
+        .where(eq(userRelations.targetUserId, req.user.id));
+
+    // Find mutual matches by comparing the two sets
+    const matches = othersRelations.filter(other =>
+        myRelations.some(my =>
+            my.targetUserId === other.sourceUserId &&
+            my.would === other.would
+        )
+    );
+
+    // Transform the response to match the previous format
+    const mutualRelations = matches.map(match => ({
+        otherUserId: match.sourceUserId,
+        would: match.would
+    }));
 
     res.json(mutualRelations);
 });
