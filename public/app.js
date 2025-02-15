@@ -16,7 +16,7 @@ async function loadUserInfoHeader() {
     }
 }
 
-const WOULD_OPTIONS = ['date', 'cuddle', 'suck toes'];
+const WOULD_OPTIONS = ['date', 'cuddle', '1-1', 'host', 'dinner'];
 
 async function modifyRelation(targetUserId, would, shouldDelete) {
     const confirmed = shouldDelete ? true : confirm('ARE YOU ABSOLUTELY CERTAIN??');
