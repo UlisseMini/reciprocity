@@ -81,7 +81,7 @@ async function modifyRelation(targetUserId, would, shouldDelete) {
         }
     } catch (error) {
         console.error('Error modifying relation:', error);
-        alert('Something went wrong!');
+        alert('Something went wrong :(');
         // Reset checkbox to previous state on error
         const checkbox = document.getElementById(`${targetUserId}-${would}`);
         checkbox.checked = shouldDelete;
@@ -164,15 +164,19 @@ function generateUserCard(user, mutualMatches) {
 
 async function handleWouldClick(event, targetUserId, would) {
     const checkbox = event.target;
-    const shouldDelete = !checkbox.checked; // Note: checked state is already changed when click fires
+    const alreadyChecked = !checkbox.checked;
 
-    // If trying to check the box
-    if (!shouldDelete) {
-        const confirmed = confirm('ARE YOU ABSOLUTELY CERTAIN??');
-        if (!confirmed) {
-            event.preventDefault(); // Prevent the checkbox from being checked
-            return false;
-        }
+    // If the checkbox is already checked, prevent unchecking
+    if (alreadyChecked) {
+        console.log('checkbox already checked');
+        event.preventDefault();
+        return false;
+    }
+
+    const confirmed = confirm('ARE YOU ABSOLUTELY CERTAIN??\n\nThis cannot be undone - your choice will be permanent and if you match they will expect you to keep your word!');
+    if (!confirmed) {
+        event.preventDefault();
+        return false;
     }
 
     try {
@@ -182,21 +186,20 @@ async function handleWouldClick(event, targetUserId, would) {
             body: JSON.stringify({
                 targetUserId,
                 would,
-                delete: shouldDelete
             })
         });
 
         // Refresh the users table
         await loadUsersTable();
 
-        if (!shouldDelete && result.isMatched) {
+        if (result.isMatched) {
             // wait for ui refresh before showing alert
             await new Promise(r => setTimeout(r, 100));
             alert('YOU MATCHED!!!!');
         }
     } catch (error) {
         console.error('Error modifying relation:', error);
-        alert('Something went wrong!');
+        alert('Something went wrong :(');
         event.preventDefault();
         return false;
     }
@@ -221,6 +224,7 @@ async function loadUsersTable() {
         // After populating users, only load relations since matches are already loaded
         await loadRelations();
     } catch (error) {
+        alert('Something went wrong :(');
         console.error('Error loading users:', error);
     }
 }

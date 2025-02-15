@@ -293,14 +293,13 @@ app.get('/api/users', async (req: Request, res: Response) => {
     }
 });
 
-// Update the schema to handle both create and delete operations
+// Update the schema to remove the delete operation
 const ModifyRelationSchema = z.object({
     targetUserId: z.string(),
     would: z.string(),
-    delete: z.boolean().optional(),
 });
 
-// Replace the existing /api/relations POST endpoint with this updated version
+// Replace the existing /api/relations POST endpoint with this simplified version
 app.post('/api/relations', express.json(), async (req: Request, res: Response) => {
     if (!req.user) {
         res.status(401).json({ error: 'Unauthorized' });
@@ -309,21 +308,6 @@ app.post('/api/relations', express.json(), async (req: Request, res: Response) =
 
     try {
         const body = ModifyRelationSchema.parse(req.body);
-
-        if (body.delete) {
-            // Delete the relation
-            await db.delete(userRelations)
-                .where(
-                    and(
-                        eq(userRelations.sourceUserId, req.user.id),
-                        eq(userRelations.targetUserId, body.targetUserId),
-                        eq(userRelations.would, body.would)
-                    )
-                );
-
-            res.json({ success: true, deleted: true });
-            return;
-        }
 
         // Create the new relation
         await db.insert(userRelations).values({
