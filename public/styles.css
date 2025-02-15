@@ -88,11 +88,6 @@ body {
     flex-grow: 1;
 }
 
-.last-login {
-    color: #666;
-    font-size: 0.9rem;
-}
-
 /* Login page specific body style */
 .login-page {
     display: flex;

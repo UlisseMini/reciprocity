@@ -132,15 +132,12 @@ function generateUserCard(user, mutualMatches) {
         ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
         : 'https://cdn.discordapp.com/embed/avatars/0.png';
 
-    const lastLogin = new Date(user.lastLogin).toLocaleString();
-
     return `
         <div class="user-card">
             <div class="user-info">
                 <img src="${avatarUrl}" alt="${user.username}'s avatar">
                 <div class="user-details">
                     <div class="username">${user.username}</div>
-                    <div class="last-login">Last login: ${lastLogin}</div>
                 </div>
             </div>
             <div class="would-options">
