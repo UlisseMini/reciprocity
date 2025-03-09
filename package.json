@@ -10,7 +10,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "load-users": "tsx src/scripts/loadUsers.ts"
   },
   "author": "",
   "license": "ISC",
@@ -31,6 +32,7 @@
     "drizzle-kit": "^0.30.4",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "tsx": "^4.7.1"
   }
 }

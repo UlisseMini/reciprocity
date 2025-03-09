@@ -300,8 +300,10 @@ const ModifyRelationSchema = z.object({
     would: z.string(),
 });
 
-// Replace the existing /api/relations POST endpoint with this simplified version
+// DISABLE the write endpoint
 app.post('/api/relations', express.json(), async (req: Request, res: Response) => {
+    res.status(503).json({ error: 'Reciprocity has retired! Thanks for all the love! ❤️' });
+    /*
     if (!req.user) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
@@ -309,15 +311,12 @@ app.post('/api/relations', express.json(), async (req: Request, res: Response) =
 
     try {
         const body = ModifyRelationSchema.parse(req.body);
-
-        // Create the new relation
         await db.insert(userRelations).values({
             sourceUserId: req.user.id,
             targetUserId: body.targetUserId,
             would: body.would,
         });
 
-        // Check if there's a mutual relation
         const mutualRelation = await db.select()
             .from(userRelations)
             .where(
@@ -338,6 +337,7 @@ app.post('/api/relations', express.json(), async (req: Request, res: Response) =
         console.error('Error modifying relation:', error);
         res.status(500).json({ error: 'Failed to modify relation' });
     }
+    */
 });
 
 const RelationResponseSchema = z.object({
@@ -346,6 +346,7 @@ const RelationResponseSchema = z.object({
     would: z.string(),
 });
 
+// Read endpoint for relations
 app.get("/api/relations", async (req: Request, res: Response) => {
     if (!req.user) {
         res.status(401).json({ error: 'Unauthorized' });
@@ -356,13 +357,13 @@ app.get("/api/relations", async (req: Request, res: Response) => {
     res.json(relations.map(relation => RelationResponseSchema.parse(relation)));
 });
 
+// Read endpoint for matches
 app.get("/api/matches", async (req: Request, res: Response) => {
     if (!req.user) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
     }
 
-    // First find all relations where the current user has indicated interest in others
     const myRelations = await db
         .select({
             targetUserId: userRelations.targetUserId,
@@ -371,7 +372,6 @@ app.get("/api/matches", async (req: Request, res: Response) => {
         .from(userRelations)
         .where(eq(userRelations.sourceUserId, req.user.id));
 
-    // Then find all relations where others have indicated interest in the current user
     const othersRelations = await db
         .select({
             sourceUserId: userRelations.sourceUserId,
@@ -380,7 +380,6 @@ app.get("/api/matches", async (req: Request, res: Response) => {
         .from(userRelations)
         .where(eq(userRelations.targetUserId, req.user.id));
 
-    // Find mutual matches by comparing the two sets
     const matches = othersRelations.filter(other =>
         myRelations.some(my =>
             my.targetUserId === other.sourceUserId &&
@@ -388,7 +387,6 @@ app.get("/api/matches", async (req: Request, res: Response) => {
         )
     );
 
-    // Transform the response to match the previous format
     const mutualRelations = matches.map(match => ({
         otherUserId: match.sourceUserId,
         would: match.would

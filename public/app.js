@@ -48,9 +48,9 @@ const WOULD_OPTIONS = [
         description: 'Without further expectations️ :)'
     },
     {
-        id: 'impostor',
-        label: 'Impostor 😥',
-        description: 'Feel like an impostor compared to them'
+        id: 'scary',
+        label: 'Scary',
+        description: 'Scary smart / competent!'
     }
 ]
 
@@ -151,11 +151,13 @@ function generateUserCard(user, mutualMatches) {
             match.otherUserId === user.id && match.would === would.id
         );
         return `
-                        <label class="would-option ${isMatch ? 'matched' : ''}">
+                        <label class="would-option ${isMatch ? 'matched' : ''}" title="Reciprocity has retired! Thanks for all the love! ❤️">
                             <input 
                                 type="checkbox" 
                                 id="${user.id}-${would.id}"
-                                onclick="return handleWouldClick(event, '${user.id}', '${would.id}')"
+                                onclick="return false"
+                                disabled
+                                style="cursor: not-allowed;"
                             >
                             <span class="option-label">${would.label}</span>
                             ${isMatch ? '<span class="match-indicator">✓</span>' : ''}
@@ -165,49 +167,6 @@ function generateUserCard(user, mutualMatches) {
             </div>
         </div>
     `;
-}
-
-async function handleWouldClick(event, targetUserId, would) {
-    const checkbox = event.target;
-    const alreadyChecked = !checkbox.checked;
-
-    // If the checkbox is already checked, prevent unchecking
-    if (alreadyChecked) {
-        console.log('checkbox already checked');
-        event.preventDefault();
-        return false;
-    }
-
-    const confirmed = confirm('ARE YOU ABSOLUTELY CERTAIN??\n\nThis cannot be undone - your choice will be permanent and if you match they will expect you to keep your word!');
-    if (!confirmed) {
-        event.preventDefault();
-        return false;
-    }
-
-    try {
-        const result = await jsonFetch('/api/relations', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                targetUserId,
-                would,
-            })
-        });
-
-        // Refresh the users table
-        await loadUsersTable();
-
-        if (result.isMatched) {
-            // wait for ui refresh before showing alert
-            await new Promise(r => setTimeout(r, 100));
-            alert('YOU MATCHED!!!!');
-        }
-    } catch (error) {
-        console.error('Error modifying relation:', error);
-        alert('Something went wrong :(');
-        event.preventDefault();
-        return false;
-    }
 }
 
 async function loadUsersTable() {
