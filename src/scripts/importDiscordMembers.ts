@@ -99,6 +99,15 @@ async function importDiscordMembers() {
                 continue;
             }
 
+            // Skip users with 'ghost' role
+            const hasGhostRole = member.roles.cache.some(role => 
+                role.name.toLowerCase() === 'ghost'
+            );
+            if (hasGhostRole) {
+                console.log(`Skipping user with ghost role: ${member.user.username}`);
+                continue;
+            }
+
             try {
                 // Insert or update user
                 const userResult = await db.insert(users).values({
