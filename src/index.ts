@@ -294,16 +294,13 @@ app.get('/api/users', async (req: Request, res: Response) => {
     }
 });
 
-// Update the schema to remove the delete operation
 const ModifyRelationSchema = z.object({
     targetUserId: z.string(),
     would: z.string(),
+    delete: z.boolean().optional(),
 });
 
-// DISABLE the write endpoint
 app.post('/api/relations', express.json(), async (req: Request, res: Response) => {
-    res.status(503).json({ error: 'Reciprocity has retired! Thanks for all the love! ❤️' });
-    /*
     if (!req.user) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
@@ -311,12 +308,27 @@ app.post('/api/relations', express.json(), async (req: Request, res: Response) =
 
     try {
         const body = ModifyRelationSchema.parse(req.body);
-        await db.insert(userRelations).values({
-            sourceUserId: req.user.id,
-            targetUserId: body.targetUserId,
-            would: body.would,
-        });
+        
+        if (body.delete) {
+            // Delete the relation
+            await db.delete(userRelations)
+                .where(
+                    and(
+                        eq(userRelations.sourceUserId, req.user.id),
+                        eq(userRelations.targetUserId, body.targetUserId),
+                        eq(userRelations.would, body.would)
+                    )
+                );
+        } else {
+            // Insert or update the relation
+            await db.insert(userRelations).values({
+                sourceUserId: req.user.id,
+                targetUserId: body.targetUserId,
+                would: body.would,
+            }).onConflictDoNothing();
+        }
 
+        // Check for mutual relation
         const mutualRelation = await db.select()
             .from(userRelations)
             .where(
@@ -337,7 +349,6 @@ app.post('/api/relations', express.json(), async (req: Request, res: Response) =
         console.error('Error modifying relation:', error);
         res.status(500).json({ error: 'Failed to modify relation' });
     }
-    */
 });
 
 const RelationResponseSchema = z.object({

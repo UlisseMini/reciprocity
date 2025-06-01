@@ -18,40 +18,46 @@ async function loadUserInfoHeader() {
 
 const WOULD_OPTIONS = [
     {
-        id: 'date',
-        label: 'Go On Date',
-        description: 'Would go on a date if they wanted to 🥺'
-    },
-    {
-        id: 'hookup',
-        label: 'Would Hook Up',
-        description: '😳'
-    },
-    {
-        id: 'dinner',
-        label: 'Get Dinner With',
-        description: 'Non-romantic dinner date!'
-    },
-    {
-        id: 'intimate_talk',
-        label: 'Would Have Deep 1-1',
-        description: '1-1 with high openness and vulnerability'
-    },
-    {
-        id: 'host',
-        label: 'Would Host',
-        description: 'Happy to host them at your place'
-    },
-    {
-        id: 'makeout',
-        label: 'Would Make Out',
-        description: 'Without further expectations️ :)'
-    },
-    {
-        id: 'scary',
-        label: 'Scary',
-        description: 'Scary smart / competent!'
+        id: 'support',
+        label: 'Honored to be called when distressed',
+        description: 'I would be honored to support you when you\'re feeling depressed, anxious, or having a really bad day - and I\'m okay with you calling me too'
     }
+    // Previous options (from when this was a dating app):
+    // {
+    //     id: 'date',
+    //     label: 'Go On Date',
+    //     description: 'Would go on a date if they wanted to 🥺'
+    // },
+    // {
+    //     id: 'hookup',
+    //     label: 'Would Hook Up',
+    //     description: '😳'
+    // },
+    // {
+    //     id: 'dinner',
+    //     label: 'Get Dinner With',
+    //     description: 'Non-romantic dinner date!'
+    // },
+    // {
+    //     id: 'intimate_talk',
+    //     label: 'Would Have Deep 1-1',
+    //     description: '1-1 with high openness and vulnerability'
+    // },
+    // {
+    //     id: 'host',
+    //     label: 'Would Host',
+    //     description: 'Happy to host them at your place'
+    // },
+    // {
+    //     id: 'makeout',
+    //     label: 'Would Make Out',
+    //     description: 'Without further expectations️ :)'
+    // },
+    // {
+    //     id: 'scary',
+    //     label: 'Scary',
+    //     description: 'Scary smart / competent!'
+    // }
 ]
 
 document.documentElement.style.setProperty('--option-count', WOULD_OPTIONS.length);
@@ -59,7 +65,7 @@ document.documentElement.style.setProperty('--option-count', WOULD_OPTIONS.lengt
 async function modifyRelation(targetUserId, would, shouldDelete) {
     // If we're trying to check the box (shouldDelete is false), confirm first
     if (!shouldDelete) {
-        const confirmed = confirm('ARE YOU ABSOLUTELY CERTAIN??');
+        const confirmed = confirm('Are you sure you want to offer mutual support with this person?');
         if (!confirmed) {
             return; // Just return - no need to modify the checkbox as it hasn't been changed yet
         }
@@ -82,7 +88,7 @@ async function modifyRelation(targetUserId, would, shouldDelete) {
         if (!shouldDelete && result.isMatched) {
             // wait for ui refresh before showing alert
             await new Promise(r => setTimeout(r, 100));
-            alert('YOU MATCHED!!!!');
+            alert('You both want to support each other! You can now reach out when you need someone to talk to.');
         }
     } catch (error) {
         console.error('Error modifying relation:', error);
@@ -151,13 +157,11 @@ function generateUserCard(user, mutualMatches) {
             match.otherUserId === user.id && match.would === would.id
         );
         return `
-                        <label class="would-option ${isMatch ? 'matched' : ''}" title="Reciprocity has retired! Thanks for all the love! ❤️">
+                        <label class="would-option ${isMatch ? 'matched' : ''}">
                             <input 
                                 type="checkbox" 
                                 id="${user.id}-${would.id}"
-                                onclick="return false"
-                                disabled
-                                style="cursor: not-allowed;"
+                                onchange="modifyRelation('${user.id}', '${would.id}', !this.checked)"
                             >
                             <span class="option-label">${would.label}</span>
                             ${isMatch ? '<span class="match-indicator">✓</span>' : ''}
