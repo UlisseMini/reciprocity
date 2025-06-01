@@ -25,12 +25,12 @@ const WOULD_OPTIONS = [
     {
         id: 'date',
         label: 'Would be up for a casual date',
-        description: 'I'd like to get to know you better one-on-one! This is low-pressure - not saying I want to *date* you specifically, just that I could see myself maybe being interested (or maybe not) but I'm curious to explore that possibility. Think casual coffee or lunch to see if there's a vibe.'
+        description: 'I\'d like to get to know you better one-on-one! This is low-pressure - not saying I want to *date* you specifically, just that I could see myself maybe being interested (or maybe not) but I\'m curious to explore that possibility. Think casual coffee or lunch to see if there\'s a vibe.'
     },
     {
         id: 'intimate_talk',
         label: 'Would have deep 1-1 conversations',
-        description: 'I'd love to have deeper, more vulnerable conversations with you one-on-one. Not necessarily support-focused, just getting to know each other on a more meaningful level with high openness and authenticity.'
+        description: 'I\'d love to have deeper, more vulnerable conversations with you one-on-one. Not necessarily support-focused, just getting to know each other on a more meaningful level with high openness and authenticity.'
     }
     // Alternative label suggestions:
     // - "Mutual support"
