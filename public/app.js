@@ -18,10 +18,17 @@ async function loadUserInfoHeader() {
 
 const WOULD_OPTIONS = [
     {
-        id: 'support',
-        label: 'Mutual Support',
-        description: 'I would be honored to support you when you\'re feeling depressed, anxious, or having a really bad day - and I\'d love for you to feel comfortable reaching out to me too when I need support. This is about creating a mutual relationship where we both actively want to be there for each other when we have the capacity and it feels like an honor, not an imposition.'
+        id: 'mutual_support',
+        label: 'Be there for each other',
+        description: 'I would be honored for you to reach out to me for support when you need it, and I feel confident in my ability to say no when it\'s too much for me, so feel free to reach out. AND I would love to occasionally call you for support, if you would feel honored by that, and you feel comfortable saying no before I become a burden to you -- I\'d love to be supported when I know it\'s an honor for you, not a burden. This is mutual support where we both want to be there for each other.'
     }
+    // Alternative label suggestions:
+    // - "Mutual support"
+    // - "Be there for each other" 
+    // - "Support each other"
+    // - "There for you"
+    // - "Connected support"
+    // - "Honor to support",
     // Previous options (from when this was a dating app):
     // {
     //     id: 'date',
