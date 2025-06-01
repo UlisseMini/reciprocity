@@ -19,8 +19,8 @@ async function loadUserInfoHeader() {
 const WOULD_OPTIONS = [
     {
         id: 'support',
-        label: 'Honored to be called when distressed',
-        description: 'I would be honored to support you when you\'re feeling depressed, anxious, or having a really bad day - and I\'m okay with you calling me too'
+        label: 'Mutual Support',
+        description: 'I would be honored to support you when you\'re feeling depressed, anxious, or having a really bad day - and I\'d love for you to feel comfortable reaching out to me too when I need support. This is about creating a mutual relationship where we both actively want to be there for each other when we have the capacity and it feels like an honor, not an imposition.'
     }
     // Previous options (from when this was a dating app):
     // {
@@ -143,12 +143,17 @@ function generateUserCard(user, mutualMatches) {
         ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
         : 'https://cdn.discordapp.com/embed/avatars/0.png';
 
+    // Show display name if available, otherwise show username
+    const displayName = user.displayName || user.username;
+    const showUsername = user.displayName && user.displayName !== user.username;
+
     return `
         <div class="user-card">
             <div class="user-info">
-                <img src="${avatarUrl}" alt="${user.username}'s avatar">
+                <img src="${avatarUrl}" alt="${displayName}'s avatar">
                 <div class="user-details">
-                    <div class="username">${user.username}</div>
+                    <div class="username">${displayName}</div>
+                    ${showUsername ? `<div class="real-username">@${user.username}</div>` : ''}
                 </div>
             </div>
             <div class="would-options">

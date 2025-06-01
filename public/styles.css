@@ -88,6 +88,12 @@ body {
     flex-grow: 1;
 }
 
+.real-username {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 2px;
+}
+
 /* Login page specific body style */
 .login-page {
     display: flex;

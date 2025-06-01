@@ -6,6 +6,7 @@ export const users = pgTable('users', {
     username: text('username').notNull(),
     discriminator: text('discriminator').notNull(),
     avatar: text('avatar'),
+    displayName: text('display_name'), // Guild-specific display name/nickname
 
     // Additional helpful fields for user management
     createdAt: timestamp('created_at').defaultNow().notNull(),
