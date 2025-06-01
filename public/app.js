@@ -20,7 +20,7 @@ const WOULD_OPTIONS = [
     {
         id: 'mutual_support',
         label: 'Would love to be there for each other',
-        description: 'I would be honored for you to reach out to me for support when you need it, and I feel confident in my ability to say no when it\'s too much for me, so feel free to reach out. AND I would love to occasionally call you for support, if you would feel honored by that, and you feel comfortable saying no before I become a burden to you -- I\'d love to be supported when I know it\'s an honor for you, not a burden. This is mutual support where we both want to be there for each other.'
+        description: 'I would be honored for you to reach out to me for support whenever you need it. I’m confident in my ability to say “no” if it ever becomes too much, so please feel free to ask.\n\nAND I would love to occasionally call on you for support, if that would feel like an honor to you—and only if you’re comfortable saying “no” before it becomes a burden. I want to be supported when I know it’s an honor for you that brings us closer, not a weight.'
     }
     // Alternative label suggestions:
     // - "Mutual support"
@@ -140,7 +140,7 @@ function generateExplanationsHtml() {
                 ${WOULD_OPTIONS.map(would => `
                     <div class="explanation-item">
                         <strong>${would.label}:</strong>
-                        <span>${would.description}</span>
+                        <span>${would.description.replace('\n', '<br>')}</span>
                     </div>
                 `).join('')}
             </div>
