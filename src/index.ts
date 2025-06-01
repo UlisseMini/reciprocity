@@ -142,8 +142,8 @@ const TokenResponseSchema = z.object({
 const UserResponseSchema = z.object({
     id: z.string(),
     username: z.string(),
-    discriminator: z.string(),
-    avatar: z.string().nullable(),
+    discriminator: z.string().optional().nullable(),
+    avatar: z.string().optional().nullable(),
 });
 
 const GuildResponseSchema = z.object({
@@ -162,14 +162,14 @@ async function syncUserData(authHeader: string, userData: UserResponse) {
         await db.insert(users).values({
             id: userData.id,
             username: userData.username,
-            discriminator: userData.discriminator,
+            discriminator: userData.discriminator || '0',
             avatar: userData.avatar,
             lastLogin: new Date(),
         }).onConflictDoUpdate({
             target: users.id,
             set: {
                 username: userData.username,
-                discriminator: userData.discriminator,
+                discriminator: userData.discriminator || '0',
                 avatar: userData.avatar,
                 lastLogin: new Date(),
             },
