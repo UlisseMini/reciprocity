@@ -21,6 +21,16 @@ const WOULD_OPTIONS = [
         id: 'mutual_support',
         label: 'Would love to be there for each other',
         description: 'I would be honored for you to reach out to me for support whenever you need it. I’m confident in my ability to say “no” if it ever becomes too much, so please feel free to ask.\n\nAND I would love to occasionally call on you for support, if that would feel like an honor to you—and only if you’re comfortable saying “no” before it becomes a burden. I want to be supported when I know it’s an honor for you that brings us closer, not a weight.'
+    },
+    {
+        id: 'date',
+        label: 'Would be up for a casual date',
+        description: 'I'd like to get to know you better one-on-one! This is low-pressure - not saying I want to *date* you specifically, just that I could see myself maybe being interested (or maybe not) but I'm curious to explore that possibility. Think casual coffee or lunch to see if there's a vibe.'
+    },
+    {
+        id: 'intimate_talk',
+        label: 'Would have deep 1-1 conversations',
+        description: 'I'd love to have deeper, more vulnerable conversations with you one-on-one. Not necessarily support-focused, just getting to know each other on a more meaningful level with high openness and authenticity.'
     }
     // Alternative label suggestions:
     // - "Mutual support"
@@ -72,7 +82,7 @@ document.documentElement.style.setProperty('--option-count', WOULD_OPTIONS.lengt
 async function modifyRelation(targetUserId, would, shouldDelete) {
     // If we're trying to check the box (shouldDelete is false), confirm first
     if (!shouldDelete) {
-        const confirmed = confirm('Are you sure? Actually imagine it. Could you say no? Would you be happy to?');
+        const confirmed = confirm('Are you sure? Please read the description and actually imagine this scenario. Are you confident about checking this?');
         if (!confirmed) {
             // Reset checkbox to unchecked state since user cancelled
             const checkbox = document.getElementById(`${targetUserId}-${would}`);
