@@ -19,7 +19,7 @@ async function loadUserInfoHeader() {
 const WOULD_OPTIONS = [
     {
         id: 'mutual_support',
-        label: 'Be there for each other',
+        label: 'Would love to be there for each other',
         description: 'I would be honored for you to reach out to me for support when you need it, and I feel confident in my ability to say no when it\'s too much for me, so feel free to reach out. AND I would love to occasionally call you for support, if you would feel honored by that, and you feel comfortable saying no before I become a burden to you -- I\'d love to be supported when I know it\'s an honor for you, not a burden. This is mutual support where we both want to be there for each other.'
     }
     // Alternative label suggestions:
@@ -72,9 +72,12 @@ document.documentElement.style.setProperty('--option-count', WOULD_OPTIONS.lengt
 async function modifyRelation(targetUserId, would, shouldDelete) {
     // If we're trying to check the box (shouldDelete is false), confirm first
     if (!shouldDelete) {
-        const confirmed = confirm('Are you sure you want to offer mutual support with this person?');
+        const confirmed = confirm('Are you sure? Actually imagine it. Could you say no? Would you be happy to?');
         if (!confirmed) {
-            return; // Just return - no need to modify the checkbox as it hasn't been changed yet
+            // Reset checkbox to unchecked state since user cancelled
+            const checkbox = document.getElementById(`${targetUserId}-${would}`);
+            checkbox.checked = false;
+            return;
         }
     }
 
